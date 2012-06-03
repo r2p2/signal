@@ -6,6 +6,23 @@
 
 class NoParam {};
 
+template <class FunctorType>
+class SignalBase
+{
+public:
+	typedef std::tr1::function<FunctorType> functor;
+	
+	SignalBase() : _handler() {}
+
+	void connect(functor fun)
+	{
+		_handler.push_back(fun);
+	}
+
+protected:
+	std::list<functor> _handler;
+};
+
 template <
 	class P1 = NoParam,
 	class P2 = NoParam,
@@ -16,101 +33,61 @@ class Signal
 };
 
 template <class P1, class P2, class P3>
-class Signal<P1, P2, P3, NoParam>
+class Signal<P1, P2, P3, NoParam> : SignalBase<void (P1, P2, P3)>
 {
 public:
-	typedef std::tr1::function<void (P1, P2, P3)> functor;
-
-	Signal() : _handler() {}	
-
 	void emit(const P1& arg1, const P2& arg2, const P3& arg3)
 	{
-		typename std::list<functor>::iterator it;
-		for(it = _handler.begin(); it != _handler.end(); it++)
+		typedef SignalBase<void (P1, P2, P3)> parent;
+		typename std::list<typename parent::functor>::iterator it;
+		for(it = parent::_handler.begin(); it != parent::_handler.end(); it++)
 		{
 			(*it)(arg1, arg2, arg3);
 		}
 	}
-
-	void connect(functor fun)
-	{
-		_handler.push_back(fun);
-	}
-private:
-	std::list<functor> _handler;
 };
 
 template <class P1, class P2>
-class Signal<P1, P2, NoParam, NoParam>
+class Signal<P1, P2, NoParam, NoParam> : public SignalBase<void (P1, P2)>
 {
 public:
-	typedef std::tr1::function<void (P1, P2)> functor;
-
-	Signal() : _handler() {}	
-
 	void emit(const P1& arg1, const P2& arg2)
 	{
-		typename std::list<functor>::iterator it;
-		for(it = _handler.begin(); it != _handler.end(); it++)
+		typedef SignalBase<void (P1, P2)> parent;
+		typename std::list<typename parent::functor>::iterator it;
+		for(it = parent::_handler.begin(); it != parent::_handler.end(); it++)
 		{
 			(*it)(arg1, arg2);
 		}
 	}
-
-	void connect(functor fun)
-	{
-		_handler.push_back(fun);
-	}
-private:
-	std::list<functor> _handler;
 };
 
 template <class P1>
-class Signal<P1, NoParam, NoParam, NoParam>
+class Signal<P1, NoParam, NoParam, NoParam> : public SignalBase<void (P1)>
 {
 public:
-	typedef std::tr1::function<void (P1)> functor;
-
-	Signal() : _handler() {}	
-
 	void emit(const P1& arg1)
 	{
-		typename std::list<functor>::iterator it;
-		for(it = _handler.begin(); it != _handler.end(); it++)
+		typedef SignalBase<void (P1)> parent;
+		typename std::list<typename parent::functor>::iterator it;
+		for(it = parent::_handler.begin(); it != parent::_handler.end(); it++)
 		{
 			(*it)(arg1);
 		}
 	}
-
-	void connect(functor fun)
-	{
-		_handler.push_back(fun);
-	}
-private:
-	std::list<functor> _handler;
 };
 
 template <>
-class Signal<NoParam, NoParam, NoParam, NoParam>
+class Signal<NoParam, NoParam, NoParam, NoParam> : public SignalBase<void ()>
 {
 public:
-	typedef std::tr1::function<void ()> functor;
-
-	Signal() : _handler() {}	
-
 	void emit()
 	{
-		std::list<functor>::iterator it;
-		for(it = _handler.begin(); it != _handler.end(); it++)
+		typedef SignalBase<void ()> parent;
+		typename std::list<parent::functor>::iterator it;
+		for(it = parent::_handler.begin(); it != parent::_handler.end(); it++)
 		{
 			(*it)();
 		}
 	}
-
-	void connect(functor fun)
-	{
-		_handler.push_back(fun);
-	}
-private:
-	std::list<functor> _handler;
 };
